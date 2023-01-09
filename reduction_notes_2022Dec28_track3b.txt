@@ -1,0 +1,418 @@
+##### Software ###########################################################
+
+# (Data reduction in RTDC 5)
+linux> source /home/hlu/software/MIR/mir/setup
+IDL> device, decomposed=0, retain=2
+
+# ASIAA (Please ssh -Y to almat5, almat6, alma7, alma8)
+# linux> source /asiaa/home/hyliu/software/MIR/sma-mir/setup.bsh
+# IDL> device, decomposed=0, retain=2
+##########################################################################
+
+
+
+
+
+##### Way to check helpfile ##############################################
+
+# prints help comments from beginning of .pro files.
+IDL> pro_hlp
+
+pro_lkf
+# looks for a routine with a keyword in its first comment line.
+IDL> pro_lkf
+
+# provides brief online description of several routines and wrappers related to the SMA data-reduction.
+mirhelp
+
+# For example:
+#
+#      IDL> pro_hlp,variable=<'variable_name'>
+#              to get help on a variable.
+#
+#      IDL> pro_hlp,structure=<'structure_name'>
+#              to get help on a structure.
+#
+#      IDL> pro_hlp,/program
+#              to get help on a program and print out the basic
+#              introduction and usage of the function.
+#
+#      IDL> mirhelp,'<task name>'
+#              to get help on a wrapper program, e.g. gain_cal etc.
+#
+##########################################################################
+
+
+
+
+
+##### Read Data in MIR IDL ###############################################
+
+# science data (Obs date: 2022May23; CSO tau: 0.1 -> 0.05)
+# scheduler comment:
+#   Tau was excellent. Phase was OK. Only 6 antennas, but this is a repeat
+#   and the weather was great. The (only!) gain calibrator was extremely
+#   faint, but with time averaging it should be OK. -GP
+
+# load raw data
+readdata, dir='SMA2021B_A011_track3b'
+
+# Set the number of spectral channel of the continuum spectral window to be 1
+select,/p,/re,band='c1'
+sp[psf].nch = 1
+
+# re-generate continuum data by performing spectral averaging over the first 4 spectral windows
+select, /p, /reset, band=['c1','s1','s2','s3','s4','s5']
+uti_avgband, swmch1=60, swmch2=1020
+plot_continuum
+
+# examing the calibrator data
+select,/p,/reset,source=['3c279','1329+319','1626-298','Titan']
+plot_continuum
+
+# save MIR format data
+select, /p, /reset
+mir_save, 'sma21bA001_track3b.mir', /new
+
+# inspect spectra
+select,/p,/reset, source='BLLac'
+plot_spectra,x_var='fsky',y_vars='amp,pha', frame_vars='blcd', color_vars='band',frames_per_page=4
+plot_spectra,x_var='channel',y_vars='amp,pha', frame_vars='blcd', color_vars='band',frames_per_page=4
+select,/p,/reset
+
+### Notes ################################################################
+
+# passband: 3c279
+# source  : many
+# Flux    : Titan
+# gain    : 1626-298, 1329+319
+
+# (PWV)
+#
+# Issues:
+# 1. spw s6 look weak in general.
+
+##########################################################################
+
+
+
+
+
+##### Baseline Correction ################################################
+# IDL> select,/p,/reset
+# IDL> sma_cal_bas
+
+## Notes #################################################################
+#
+# This step is not needed.
+#    
+#     # Example steps to correct antenna files
+#     Enter the current ANTENNAS file: ./120520_07:02:06/antennas
+#     Enter the new ANTENNAS file: ./ant_tab/antennas
+#
+##########################################################################
+
+
+
+
+
+##### Inspect elevation ################################
+
+result = plo_var('dhrs','el',frames_per_page=1)
+
+##### Notes ############################################
+#
+# Elevation of Titan was around 30 deg.
+# Do fluxcal with elevation range of 25-35 deg
+#
+########################################################
+
+
+
+
+##### Initial Data Insepction ############################################
+
+select, /p, /reset, source=['3c279','1329+319','1626-298','Titan']
+result=dat_filter(s_f,' "rec" eq "230" and  "wt" gt "0" ')
+plot_continuum
+plot_continuum, preavg, frames_p=4, y='amp'
+plot_continuum, frames_p=4, y='pha'
+
+select, /p, /reset, source=['3c279','1329+319','1626-298','Titan']
+result=dat_filter(s_f,' "rec" eq "240" and  "wt" gt "0" ')
+plot_continuum
+
+
+select, /p, /reset
+
+## Notes #################################################################
+#
+# 1. ipoint:
+#
+# 2. Reference antenna: 1
+#
+##########################################################################
+
+
+
+
+##### Flag the ipoint Data and Strange data ##############################
+
+# low election
+select,/p,/reset
+result=dat_filter(s_f, '"int" gt "1842" and "int" lt "1963" ')
+flag,/flag
+
+# phase jump
+select,/p,/reset, rx=230
+result=dat_filter(s_f, ' "blcd" like "8" ')
+result=dat_filter(s_f, '"int" gt "1080" and "int" lt "1135" ')
+flag,/flag
+
+
+select, /p, /reset
+plot_continuum
+
+mir_save, 'sma21bA001_track3b.flag.mir'
+
+
+## Notes #################################################################
+
+# Data quality is good
+# Phase of antenna 8 is rough. May try excluding this antenna.
+
+##########################################################################
+
+
+
+
+
+#### Tsys Correction  ####################################################
+
+# inspect Tsys
+select,/p,/reset
+result=dat_filter(s_f,' "rec" eq "230" and  "wt" gt "0" ')
+plot_var, frames_p=6
+
+select,/p,/reset
+result=dat_filter(s_f,' "rec" eq "240" and  "wt" gt "0" ')
+plot_var, frames_p=6
+
+select,/p,/reset
+apply_tsys
+plot_continuum, x='int'
+
+mir_save, 'sma21bA001_track3b.tsys.mir'
+
+## Notes #################################################################
+#
+##########################################################################
+
+
+
+
+#### Passband Calibration ################################################
+
+# remove spikes from passband calibrator
+select,/p,/reset
+uti_checkspike,source='3c279',/baseline,ntrim=60, threshold=5, /fix, sample=1
+
+select, /p, /reset
+result=dat_filter(s_f, ' "wt" gt "0" and "nch" eq "1024" ', /reset)
+pass_cal, cal_type='pha', smoothing=16, ntrim=16, frames_p=16,refant=1
+# all no
+# 3c279 yes
+
+select, /p, /reset, band=['c1','s1','s2','s3','s4']
+uti_avgband, swmch1=60, swmch2=1020
+
+select, /p, /reset
+result=dat_filter(s_f, ' "wt" gt "0" and "nch" eq "1024" ', /reset)
+pass_cal, cal_type='amp', smoothing=16, ntrim=16, frames_p=16,refant=1
+
+select, /p, /reset
+mir_save, 'sma21bA001_track3b.tsys.bp.mir'
+
+select,/p,/reset, band='c1', source=['3c279','1329+319','1626-298','Titan','mwc349a']
+mir_save, 'flux.mir',/new
+
+## Notes #################################################################
+# 1. Data should be ok.
+
+# http://sma1.sma.hawaii.edu/planetvis.html
+
+# http://sma1.sma.hawaii.edu/callist/callist.html
+# 3c279
+ 1mm   08 May 2022 07:58   SMA       224.54  11.557 +/-  0.903    mgurwell  
+ 1mm   13 May 2022 11:34   SMA       225.53  11.517 +/-  0.576    mgurwell  
+ 1mm   16 Jun 2022 07:31   SMA       225.54  11.057 +/-  0.553    mgurwell  
+ 1mm   17 Jun 2022 06:43   SMA       225.56  11.000 +/-  0.551    mgurwell  
+ 850   16 May 2022 10:14   SMA       345.29   7.857 +/-  0.403    mgurwell
+
+# bllac
+ 1mm   21 May 2022 13:08   SMA       225.52   8.936 +/-  0.447    mgurwell  
+ 1mm   03 Jun 2022 17:40   SMA       225.49   6.456 +/-  0.323    mgurwell  
+ 850   14 Mar 2022 17:36   SMA       346.01   4.831 +/-  0.242    mgurwell  
+ 850   16 May 2022 14:40   SMA       345.29   6.901 +/-  0.345    mgurwell  
+ 850   07 Jun 2022 17:12   SMA       345.00   6.353 +/-  0.324    mgurwell
+
+# 1626-298
+ 1mm   08 Apr 2022 16:30   SMA       225.54   0.469 +/-  0.028    mgurwell  
+ 1mm   13 Apr 2022 13:26   SMA       225.02   0.537 +/-  0.027    mgurwell  
+ 1mm   13 Apr 2022 13:26   SMA       274.03   0.509 +/-  0.026    mgurwell
+
+##########################################################################
+
+
+
+
+#### Measure the Absolute Flux ###########################################
+
+select,/p,/reset, ant='-8'
+gain_cal,cal_type='pha',x_var='hours',tel_bsl='telescope',refant=1,/connect,/non_point
+# all yes
+
+select, /p, /reset, ant='-8'
+gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,poly=0,/preavg
+# all no
+# Titan yes 1
+
+
+select,/p,/re,rx=230,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.3406     103      9.83      0.3310      0.0003
+     Titan      g      17    0.8172      89     11.90      0.8136     -0.0039
+
+Vector average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.3310      98      9.83      0.3310      0.0003
+     Titan      g      17    0.8136      88     11.90      0.8136     -0.0039
+
+
+select,/p,/re,rx=230,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.3195     103      9.83      0.3109     -0.0012
+     Titan      g      17    0.9227      86     11.90      0.9202      0.0029
+
+Vector average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.3109      98      9.83      0.3109     -0.0012
+     Titan      g      17    0.9202      85     11.90      0.9202      0.0029
+
+
+
+select,/p,/re,rx=240,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.2932      92      9.83      0.2819     -0.0013
+     Titan      g      17    1.0670      81     11.90      1.0646      0.0012
+
+Vector average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.2819      86      9.83      0.2819     -0.0013
+     Titan      g      17    1.0646      80     11.90      1.0646      0.0012
+
+
+select,/p,/re,rx=240,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.2909      81      9.83      0.2757      0.0024
+     Titan      g      17    1.0935      72     11.90      1.0905     -0.0011
+
+Vector average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1626-298             91    0.2757      73      9.83      0.2757      0.0024
+     Titan      g      17    1.0905      72     11.90      1.0905     -0.0011
+
+select,/p,/re
+mir_save,/new,'flux.mir'
+
+## Notes #################################################################
+
+##########################################################################
+
+
+
+
+#### Gain Calibration and Miriad Files Output ############################
+# IDL> device, decomposed=0, retain=2
+# IDL> .compile idl2miriad
+
+mir_restore, 'sma21bA001_track3b.tsys.bp.mir'
+
+# gain phase calibration
+select,/p,/reset, rx=230
+gain_cal,cal_type='pha',x_var='hours',tel_bsl='telescope',refant=1,/connect,/non_point,/preavg
+1626-298 yes 1
+
+select,/p,/reset, rx=240
+gain_cal,cal_type='pha',x_var='hours',tel_bsl='telescope',refant=1,/connect,/non_point,/preavg
+
+
+# gain amplitude calibration
+select,/p,/reset, rx=230, sideband='l'
+gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
+all no
+1626-298 yes 0.34
+
+select,/p,/reset, rx=230, sideband='u'
+gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
+all no
+1626-298 yes 0.32
+
+select,/p,/reset, rx=240, sideband='l'
+gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
+all no
+1626-298 yes 0.29
+
+select,/p,/reset, rx=240, sideband='u'
+gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
+all no
+1626-298 yes 0.29
+
+select, /p, /reset, source=['1626-298','3c279','Titan']
+plot_continuum
+
+
+# save calibrated data
+select,/p,/reset
+mir_save, 'sma21bA001_track3b.cal.mir', /new
+
+
+# Export Miriad format data
+
+track = 'track3b'
+
+rx=230
+targ_list = ['DoAr_16', 'DoAr_33', 'YLW_8', 'GSS_39', 'DoAr_24E', 'AS_206', 'GSS_26', 'WSB_31', 'VSSG_1', 'DoAr_25', 'IRS_37', 'IRS_41', 'IRS_51', 'IRS_39', 'YLW_47', 'WSB_60', 'HBC_266', 'DoAr_44']
+spw_list = ['s1', 's2','s3','s4']
+sideband_list = ['l','u']
+select,/p,/reset, rx=rx
+foreach sideband, sideband_list do foreach targ, targ_list do idl2miriad, dir=targ+'.rx'+string(rx)+'.'+sideband+'sb'+'.'+track+'.cal.miriad', sideband=sideband, source=targ, band=spw_list
+
+rx=240
+targ_list = ['DoAr_16', 'DoAr_33', 'YLW_8', 'GSS_39', 'DoAr_24E', 'AS_206', 'GSS_26', 'WSB_31', 'VSSG_1', 'DoAr_25', 'IRS_37', 'IRS_41', 'IRS_51', 'IRS_39', 'YLW_47', 'WSB_60', 'HBC_266', 'DoAr_44']
+spw_list = ['s1', 's2','s3','s4']
+sideband_list = ['l','u']
+select,/p,/reset, rx=rx
+foreach sideband, sideband_list do foreach targ, targ_list do idl2miriad, dir=targ+'.rx'+string(rx)+'.'+sideband+'sb'+'.'+track+'.cal.miriad', sideband=sideband, source=targ, band=spw_list
+
+
+## Notes #################################################################
+#
+#
+##########################################################################

@@ -261,6 +261,11 @@ mir_save, 'flux.mir',/new
  1mm   13 Apr 2022 13:26   SMA       225.02   0.537 +/-  0.027    mgurwell  
  1mm   13 Apr 2022 13:26   SMA       274.03   0.509 +/-  0.026    mgurwell
 
+# mwc349a
+ 1mm   21 Mar 2022 17:30   SMA       225.54   2.088 +/-  0.105    mgurwell  
+ 1mm   03 Nov 2022 05:13   SMA       235.40   2.055 +/-  0.103    mgurwell  
+ 850   13 Aug 2021 09:00   SMA       346.28   2.533 +/-  0.127    mgurwell 
+
 ##########################################################################
 
 
@@ -293,6 +298,19 @@ Vector average:
      Titan      g      17    0.8136      88     11.90      0.8136     -0.0039
 
 
+select,/p,/re,rx=230,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "20" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1329+319              2    0.2347      11      5.03      0.2233      0.0054
+     3c279            463   12.4302    2818      6.09     12.4300      0.0054
+  1626-298            205    0.3433     166      9.97      0.3343     -0.0005
+     Titan      g      47    0.8386     158     12.99      0.8358     -0.0027
+   mwc349a             36    1.9524     437     13.76      1.9517     -0.0004
+
+
 select,/p,/re,rx=230,sideband='u', ant='-8'
 result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
 flux_measure
@@ -307,6 +325,17 @@ Vector average:
   1626-298             91    0.3109      98      9.83      0.3109     -0.0012
      Titan      g      17    0.9202      85     11.90      0.9202      0.0029
 
+select,/p,/re,rx=230,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "20" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1329+319              2    0.2221      16      5.03      0.2167      0.0034
+     3c279            463   11.6673    2345      6.09     11.6671     -0.0068
+  1626-298            205    0.3210     162      9.97      0.3127     -0.0004
+     Titan      g      47    0.9418     150     12.99      0.9396     -0.0004
+   mwc349a             36    1.9897     443     13.76      1.9890      0.0005
 
 
 select,/p,/re,rx=240,sideband='l', ant='-8'
@@ -324,6 +353,19 @@ Vector average:
      Titan      g      17    1.0646      80     11.90      1.0646      0.0012
 
 
+select,/p,/re,rx=240,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "20" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1329+319              2    0.2040      12      5.03      0.1995     -0.0018
+     3c279            463   10.5066    2139      6.09     10.5064      0.0059
+  1626-298            205    0.2904     143      9.97      0.2805     -0.0001
+     Titan      g      47    1.0998     141     12.99      1.0976     -0.0036
+   mwc349a             36    2.2268     485     13.76      2.2262      0.0012
+
+
 select,/p,/re,rx=240,sideband='u', ant='-8'
 result=dat_filter(s_f, ' "el" gt "25" and "el" lt "35"' )
 flux_measure
@@ -338,10 +380,117 @@ Vector average:
   1626-298             91    0.2757      73      9.83      0.2757      0.0024
      Titan      g      17    1.0905      72     11.90      1.0905     -0.0011
 
+select,/p,/re,rx=240,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "20" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+  1329+319              2    0.1722       9      5.03      0.1446     -0.0062
+     3c279            463   10.5162    2495      6.09     10.5160     -0.0023
+  1626-298            205    0.2875     125      9.97      0.2743      0.0021
+     Titan      g      47    1.1496     125     12.99      1.1469     -0.0001
+   mwc349a             36    2.2462     483     13.76      2.2454     -0.0039
+
+
 select,/p,/re
 mir_save,/new,'flux.mir'
 
 ## Notes #################################################################
+
+
+ssh cychung@almat8
+cd software
+casa57
+
+In CASA 5.7
+import sys
+sys.path.append("./analysis_scripts")
+import analysisUtils as aU
+
+aU.getALMAFlux('3C279', '199GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 16.370 +- 0.280 (age=-3 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.090 +- 0.250 (age=-3 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 15.846 +- 0.690 (age=-3 days) 100.6 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 7.460 +- 0.150 (age=-1 days) 343.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -2.0 days from 20220606, with age separation of 2 days
+  20220609 -- 20220611: freqs=[103.5, 91.47, 100.6, 343.48], fluxes=[16.37, 17.09, 15.846, 7.46]
+Median Monte-Carlo result for 199.000000 = 10.569781 +- 0.301820 (scaled MAD = 0.302768)
+Result using spectral index of -0.633904 for 199.000 GHz from 16.435 Jy at 98.524 GHz = 10.525448 +- 0.301820 Jy
+
+aU.getALMAFlux('3C279', '219GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 16.370 +- 0.280 (age=-3 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.090 +- 0.250 (age=-3 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 15.846 +- 0.690 (age=-3 days) 100.6 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 7.460 +- 0.150 (age=-1 days) 343.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -2.0 days from 20220606, with age separation of 2 days
+  20220609 -- 20220611: freqs=[103.5, 91.47, 100.6, 343.48], fluxes=[16.37, 17.09, 15.846, 7.46]
+Median Monte-Carlo result for 219.000000 = 9.952764 +- 0.309097 (scaled MAD = 0.311912)
+Result using spectral index of -0.633904 for 219.000 GHz from 16.435 Jy at 98.524 GHz = 9.905487 +- 0.309097 Jy
+
+aU.getALMAFlux('3C279', '228GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 16.370 +- 0.280 (age=-3 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.090 +- 0.250 (age=-3 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 15.846 +- 0.690 (age=-3 days) 100.6 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 7.460 +- 0.150 (age=-1 days) 343.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -2.0 days from 20220606, with age separation of 2 days
+  20220609 -- 20220611: freqs=[103.5, 91.47, 100.6, 343.48], fluxes=[16.37, 17.09, 15.846, 7.46]
+Median Monte-Carlo result for 228.000000 = 9.707160 +- 0.317173 (scaled MAD = 0.312518)
+Result using spectral index of -0.633904 for 228.000 GHz from 16.435 Jy at 98.524 GHz = 9.655803 +- 0.317173 Jy
+
+aU.getALMAFlux('3C279', '248GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 16.370 +- 0.280 (age=-3 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.090 +- 0.250 (age=-3 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 15.846 +- 0.690 (age=-3 days) 100.6 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 7.460 +- 0.150 (age=-1 days) 343.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -2.0 days from 20220606, with age separation of 2 days
+  20220609 -- 20220611: freqs=[103.5, 91.47, 100.6, 343.48], fluxes=[16.37, 17.09, 15.846, 7.46]
+Median Monte-Carlo result for 248.000000 = 9.196513 +- 0.322285 (scaled MAD = 0.318811)
+Result using spectral index of -0.633904 for 248.000 GHz from 16.435 Jy at 98.524 GHz = 9.154618 +- 0.322285 Jy
+
+aU.getALMAFlux('J1626-298', '199GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-12 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.198 +- 0.020 (age=-2 days) 344.0 GHz 
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.192 +- 0.019 (age=-2 days) 344.1 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -12.0 days from 20220606, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 199.000000 = 0.332407 +- 0.027453 (scaled MAD = 0.027341)
+Result using spectral index of -0.756208 for 199.000 GHz from 0.545 Jy at 103.500 GHz = 0.332430 +- 0.027453 Jy
+
+aU.getALMAFlux('J1626-298', '219GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-12 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.198 +- 0.020 (age=-2 days) 344.0 GHz 
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.192 +- 0.019 (age=-2 days) 344.1 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -12.0 days from 20220606, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 219.000000 = 0.309373 +- 0.026059 (scaled MAD = 0.025476)
+Result using spectral index of -0.756208 for 219.000 GHz from 0.545 Jy at 103.500 GHz = 0.309206 +- 0.026059 Jy
+
+aU.getALMAFlux('J1626-298', '228GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-12 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.198 +- 0.020 (age=-2 days) 344.0 GHz 
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.192 +- 0.019 (age=-2 days) 344.1 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -12.0 days from 20220606, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 228.000000 = 0.299462 +- 0.026138 (scaled MAD = 0.026020)
+Result using spectral index of -0.756208 for 228.000 GHz from 0.545 Jy at 103.500 GHz = 0.299931 +- 0.026138 Jy
+
+aU.getALMAFlux('J1626-298', '248GHz', lowband=3, highband=7, date='20220606')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-12 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.198 +- 0.020 (age=-2 days) 344.0 GHz 
+  Closest Band 7 measurement: 0.181 +- 0.001 (age=-2 days) 349.9 GHz 
+  Closest Band 7 measurement: 0.192 +- 0.019 (age=-2 days) 344.1 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -12.0 days from 20220606, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 248.000000 = 0.280785 +- 0.025376 (scaled MAD = 0.025237)
+Result using spectral index of -0.756208 for 248.000 GHz from 0.545 Jy at 103.500 GHz = 0.281454 +- 0.025376 Jy
 
 ##########################################################################
 

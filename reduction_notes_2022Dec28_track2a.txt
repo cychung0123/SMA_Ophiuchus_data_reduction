@@ -63,7 +63,7 @@ sp[psf].nch = 1
 
 # re-generate continuum data by performing spectral averaging over the first 4 spectral windows
 select, /p, /reset, band=['c1','s1','s2','s3','s4']
-uti_avgband, swmch1=60, swmch2=1020
+uti_avgband, swmch1=80, swmch2=944
 plot_continuum
 
 # examing the calibrator data
@@ -220,18 +220,22 @@ mir_save, 'sma21bA001_track2a.tsys.mir'
 select,/p,/reset
 uti_checkspike,source='3c279',/baseline,ntrim=60, threshold=5, /fix, sample=1
 
+select,/p,/reset
+uti_checkspike,source='bllac',/baseline,ntrim=60, threshold=5, /fix, sample=1
+
 select, /p, /reset
 result=dat_filter(s_f, ' "wt" gt "0" and "nch" eq "1024" ', /reset)
-pass_cal, cal_type='pha', smoothing=16, ntrim=16, frames_p=16,refant=1
+pass_cal, cal_type='pha', smoothing=16, ntrim=150, frames_p=16,refant=1
 # all no
 # 3c279 yes
+# bllac yes
 
-select, /p, /reset, band=['c1','s1','s2','s3','s4']
-uti_avgband, swmch1=60, swmch2=1020
+select, /p, /reset, band=['c1','s1','s2','s3','s4','s5','s6']
+uti_avgband, swmch1=150, swmch2=874
 
 select, /p, /reset
 result=dat_filter(s_f, ' "wt" gt "0" and "nch" eq "1024" ', /reset)
-pass_cal, cal_type='amp', smoothing=16, ntrim=16, frames_p=16,refant=1
+pass_cal, cal_type='amp', smoothing=16, ntrim=150, frames_p=16,refant=1
 
 select, /p, /reset
 mir_save, 'sma21bA001_track2a.tsys.bp.mir'
@@ -286,14 +290,24 @@ flux_measure
 
 Scalar average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2722     113     10.95      0.2570     -0.0006
-     Titan      g      42    1.4180     113     14.35      1.4162      0.0005
+  1626-298            171    0.2687     115     10.95      0.2556     -0.0005
+     Titan      g      42    1.4005     115     14.35      1.3991      0.0006
 
 Vector average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2570     101     10.95      0.2570     -0.0006
-     Titan      g      42    1.4162     112     14.35      1.4162      0.0005
+  1626-298            171    0.2556     106     10.95      0.2556     -0.0005
+     Titan      g      42    1.3991     115     14.35      1.3991      0.0006
 
+select,/p,/re,rx=345,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "40" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+     3c279            140   10.3661    1145      7.42     10.3658      0.0002
+  1626-298             32    0.2669      43     10.61      0.2548      0.0007
+     Titan      g      42    1.4005     115     14.35      1.3991      0.0006
+     bllac            186    7.1749     510     14.83      7.1747     -0.0018
 
 select,/p,/re,rx=345,sideband='u', ant='-8'
 result=dat_filter(s_f, ' "el" gt "30" and "el" lt "50"' )
@@ -301,15 +315,24 @@ flux_measure
 
 Scalar average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2565     101     10.95      0.2371     -0.0000
-     Titan      g      42    1.5112     101     14.35      1.5095     -0.0033
+  1626-298            171    0.2542     101     10.95      0.2343     -0.0007
+     Titan      g      42    1.5299     101     14.35      1.5283     -0.0033
 
 Vector average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2371      85     10.95      0.2371     -0.0000
-     Titan      g      42    1.5095     100     14.35      1.5095     -0.0033
+  1626-298            171    0.2343      85     10.95      0.2343     -0.0007
+     Titan      g      42    1.5283     101     14.35      1.5283     -0.0033
 
+select,/p,/re,rx=345,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "40" and "el" lt "70"' )
+flux_measure
 
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+     3c279            140    9.4698    1109      7.42      9.4694     -0.0004
+  1626-298             32    0.2557      43     10.61      0.2383     -0.0063
+     Titan      g      42    1.5299     101     14.35      1.5283     -0.0033
+     bllac            186    6.9770     462     14.83      6.9767     -0.0019
 
 select,/p,/re,rx=240,sideband='l', ant='-8'
 result=dat_filter(s_f, ' "el" gt "30" and "el" lt "50"' )
@@ -317,14 +340,24 @@ flux_measure
 
 Scalar average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2704     124     10.95      0.2594      0.0016
-     Titan      g      42    1.2993     142     14.35      1.2976      0.0017
+  1626-298            171    0.2603     127     10.95      0.2508      0.0003
+     Titan      g      42    1.1973     140     14.35      1.1959      0.0019
 
 Vector average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2594     115     10.95      0.2594      0.0016
-     Titan      g      42    1.2976     141     14.35      1.2976      0.0017
+  1626-298            171    0.2508     118     10.95      0.2508      0.0003
+     Titan      g      42    1.1959     139     14.35      1.1959      0.0019
 
+select,/p,/re,rx=240,sideband='l', ant='-8'
+result=dat_filter(s_f, ' "el" gt "40" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+     3c279            140    9.5111    1352      7.42      9.5108      0.0049
+  1626-298             32    0.2628      59     10.61      0.2524      0.0000
+     Titan      g      42    1.1973     140     14.35      1.1959      0.0019
+     bllac            186    6.7512     871     14.83      6.7505      0.0038
 
 select,/p,/re,rx=240,sideband='u', ant='-8'
 result=dat_filter(s_f, ' "el" gt "30" and "el" lt "50"' )
@@ -332,19 +365,106 @@ flux_measure
 
 Scalar average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2637      91     10.95      0.2385      0.0036
-     Titan      g      42    1.3048     117     14.35      1.3018      0.0013
+  1626-298            171    0.2805      91     10.95      0.2517      0.0021
+     Titan      g      42    1.3233     115     14.35      1.3196      0.0028
 
 Vector average: 
 #   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
-  1626-298            171    0.2386      75     10.95      0.2385      0.0036
-     Titan      g      42    1.3018     117     14.35      1.3018      0.0013
+  1626-298            171    0.2517      74     10.95      0.2517      0.0021
+     Titan      g      42    1.3196     114     14.35      1.3196      0.0028
 
+select,/p,/re,rx=240,sideband='u', ant='-8'
+result=dat_filter(s_f, ' "el" gt "40" and "el" lt "70"' )
+flux_measure
+
+Scalar average: 
+#   Source   Flags   Nscans  Flux(Jy)   SNR    meantime    REAL       IMAG
+     3c279            140    9.1526     866      7.42      9.1515      0.0140
+  1626-298             32    0.2745      38     10.61      0.2473     -0.0045
+     Titan      g      42    1.3233     115     14.35      1.3196      0.0028
+     bllac            186    6.7199     675     14.83      6.7180      0.0085
 
 select,/p,/re
 mir_save,/new,'flux.mir'
 
 ## Notes #################################################################
+
+aU.getALMAFlux('3C279', '260GHz', lowband=3, highband=7, date='2022052
+     ...: 3')
+  Closest Band 3 measurement: 16.970 +- 0.150 (age=+1 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.820 +- 0.220 (age=+1 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 16.667 +- 0.537 (age=+1 days) 92.9 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 8.759 +- 0.453 (age=+0 days) 341.5 GHz 
+number of measurements used in low/high bands = 3 / 1
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age +0.5 days from 20220523, with age separation of 1 days
+  20220522 -- 20220523: freqs=[103.5, 91.47, 92.9, 341.5], fluxes=[16.97, 17.82, 16.667, 8.759], errors=[0.15, 0.22, 0.537, 0.453]
+Median Monte-Carlo result for 260.000000 = 10.383099 +- 0.396135 (scaled MAD = 0.395860)
+Result using spectral index of -0.523435 for 260.000 GHz from 17.152 Jy at 95.957 GHz = 10.179559 +- 0.396135 Jy
+
+aU.getALMAFlux('3C279', '280GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 16.970 +- 0.150 (age=+1 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.820 +- 0.220 (age=+1 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 16.667 +- 0.537 (age=+1 days) 92.9 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 8.759 +- 0.453 (age=+0 days) 341.5 GHz 
+number of measurements used in low/high bands = 3 / 1
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age +0.5 days from 20220523, with age separation of 1 days
+  20220522 -- 20220523: freqs=[103.5, 91.47, 92.9, 341.5], fluxes=[16.97, 17.82, 16.667, 8.759], errors=[0.15, 0.22, 0.537, 0.453]
+Median Monte-Carlo result for 280.000000 = 9.985030 +- 0.411099 (scaled MAD = 0.410640)
+Result using spectral index of -0.523435 for 280.000 GHz from 17.152 Jy at 95.957 GHz = 9.792247 +- 0.411099 Jy
+
+aU.getALMAFlux('3C279', '292GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 16.970 +- 0.150 (age=+1 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.820 +- 0.220 (age=+1 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 16.667 +- 0.537 (age=+1 days) 92.9 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 8.759 +- 0.453 (age=+0 days) 341.5 GHz 
+number of measurements used in low/high bands = 3 / 1
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age +0.5 days from 20220523, with age separation of 1 days
+  20220522 -- 20220523: freqs=[103.5, 91.47, 92.9, 341.5], fluxes=[16.97, 17.82, 16.667, 8.759], errors=[0.15, 0.22, 0.537, 0.453]
+Median Monte-Carlo result for 292.000000 = 9.779855 +- 0.419756 (scaled MAD = 0.425019)
+Result using spectral index of -0.523435 for 292.000 GHz from 17.152 Jy at 95.957 GHz = 9.579500 +- 0.419756 Jy
+
+aU.getALMAFlux('3C279', '312GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 16.970 +- 0.150 (age=+1 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 17.820 +- 0.220 (age=+1 days) 91.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 3 measurement: 16.667 +- 0.537 (age=+1 days) 92.9 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 8.759 +- 0.453 (age=+0 days) 341.5 GHz 
+number of measurements used in low/high bands = 3 / 1
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age +0.5 days from 20220523, with age separation of 1 days
+  20220522 -- 20220523: freqs=[103.5, 91.47, 92.9, 341.5], fluxes=[16.97, 17.82, 16.667, 8.759], errors=[0.15, 0.22, 0.537, 0.453]
+Median Monte-Carlo result for 312.000000 = 9.444258 +- 0.425513 (scaled MAD = 0.427812)
+Result using spectral index of -0.523435 for 312.000 GHz from 17.152 Jy at 95.957 GHz = 9.253002 +- 0.425513 Jy
+
+aU.getALMAFlux('J1626-298', '260GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-26 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.191 +- 0.001 (age=-2 days) 350.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -26.0 days from 20220523, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 260.000000 = 0.271598 +- 0.025294 (scaled MAD = 0.025429)
+Result using spectral index of -0.756208 for 260.000 GHz from 0.545 Jy at 103.500 GHz = 0.271574 +- 0.025294 Jy
+
+aU.getALMAFlux('J1626-298', '280GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-26 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.191 +- 0.001 (age=-2 days) 350.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -26.0 days from 20220523, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 280.000000 = 0.257098 +- 0.025158 (scaled MAD = 0.025234)
+Result using spectral index of -0.756208 for 280.000 GHz from 0.545 Jy at 103.500 GHz = 0.256774 +- 0.025158 Jy
+
+aU.getALMAFlux('J1626-298', '292GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-26 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.191 +- 0.001 (age=-2 days) 350.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -26.0 days from 20220523, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 292.000000 = 0.248578 +- 0.025561 (scaled MAD = 0.025387)
+Result using spectral index of -0.756208 for 292.000 GHz from 0.545 Jy at 103.500 GHz = 0.248753 +- 0.025561 Jy
+
+aU.getALMAFlux('J1626-298', '312GHz', lowband=3, highband=7, date='20220523')
+  Closest Band 3 measurement: 0.545 +- 0.028 (age=-26 days) 103.5 GHz (will extrapolate from this datum using spectral index)
+  Closest Band 7 measurement: 0.191 +- 0.001 (age=-2 days) 350.5 GHz 
+getALMAFluxCSV(Cycle6): Fitting for spectral index with 1 measurement pair of age -26.0 days from 20220523, with age separation of 0 days
+  20220618: freqs=[103.5, 343.5], fluxes=[0.545, 0.22]
+Median Monte-Carlo result for 312.000000 = 0.236273 +- 0.025264 (scaled MAD = 0.024990)
+Result using spectral index of -0.756208 for 312.000 GHz from 0.545 Jy at 103.500 GHz = 0.236598 +- 0.025264 Jy
 
 ##########################################################################
 
@@ -370,22 +490,22 @@ gain_cal,cal_type='pha',x_var='hours',tel_bsl='telescope',refant=1,/connect,/non
 select,/p,/reset, rx=345, sideband='l'
 gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
 all no
-1626-298 yes 0.26
+1626-298 yes 0.256
 
 select,/p,/reset, rx=345, sideband='u'
 gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
 all no
-1626-298 yes 0.26
+1626-298 yes 0.234
 
 select,/p,/reset, rx=240, sideband='l', ant='-8'
 gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
 all no
-1626-298 yes 0.26
+1626-298 yes 0.251
 
 select,/p,/reset, rx=240, sideband='u', ant='-8'
 gain_cal,cal_type='amp',x_var='hours',tel_bsl='telescope',refant=1,/non_point,smooth=0.5,/preavg
 all no
-1626-298 yes 0.26
+1626-298 yes 0.252
 
 select, /p, /reset, source=['1626-298','3c279','Titan']
 plot_continuum
@@ -418,8 +538,21 @@ select,/p,/reset, rx=rx
 foreach sideband, sideband_list do foreach targ, targ_list do idl2miriad, dir=targ+'.rx'+string(rx)+'.'+sideband+'sb'+'.'+track+'.cal.miriad', sideband=sideband, source=targ, band=spw_list
 
 
+rx=345
+targ_list = ['WSB_60']
+spw_list = ['s1', 's2','s3','s4','s5','s5']
+sideband_list = ['l','u']
+select,/p,/reset, rx=rx
+foreach sideband, sideband_list do foreach targ, targ_list do idl2miriad, dir=targ+'.rx'+string(rx)+'.'+sideband+'sb'+'.'+track+'.cal.miriad', sideband=sideband, source=targ, band=spw_list
+
+rx=240
+targ_list = ['WSB_60']
+spw_list = ['s1', 's2','s3','s4','s5','s6']
+sideband_list = ['l','u']
+select,/p,/reset, rx=rx
+foreach sideband, sideband_list do foreach targ, targ_list do idl2miriad, dir=targ+'.rx'+string(rx)+'.'+sideband+'sb'+'.'+track+'.cal.miriad', sideband=sideband, source=targ, band=spw_list
+
+
 ## Notes #################################################################
-#
-# Antenna 4 has low gain at ~15 hrs. May need flaggings.
 #
 ##########################################################################
